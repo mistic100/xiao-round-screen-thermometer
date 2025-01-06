@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
-#include <SD.h>
+#include <LittleFS.h>
 
 #include "common.h"
 #include "sensors.h"
@@ -12,6 +12,12 @@ void setup(void)
 {
     Serial.begin(115200);
 
+    if (!LittleFS.begin(false))
+    {
+        log_e("Failed to init LittleFS");
+        return;
+    }
+
     init_sensors();
     init_screen();
     lv_xiao_touch_init();
@@ -22,13 +28,6 @@ void setup(void)
     while (WiFi.status() != WL_CONNECTED)
     {
         display_error("WAIT WIFI");
-        delay(500);
-    }
-
-    pinMode(D2, OUTPUT);
-    while (!SD.begin(D2))
-    {
-        display_error("INSERT SD");
         delay(500);
     }
 

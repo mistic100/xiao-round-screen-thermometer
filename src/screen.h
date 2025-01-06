@@ -2,10 +2,6 @@
 #define USE_TFT_ESPI_LIBRARY
 #include <lv_xiao_round_screen.h>
 #include "RawImage.h"
-#include "RobotoMonoBold16.h"
-#include "RobotoMonoBold18.h"
-#include "RobotoMonoBold24.h"
-#include "RobotoMonoBold30.h"
 
 #include "common.h"
 
@@ -80,7 +76,7 @@ void display_error(const char *string)
     {
         tft.setTextColor(TFT_BLACK, TFT_RED);
     }
-    tft.drawString("INSERT SD", tft.width() / 2, tft.height() / 2);
+    tft.drawString(string, tft.width() / 2, tft.height() / 2);
 
     isblinked = !isblinked;
 }
@@ -89,13 +85,13 @@ void draw_screen(const Data &data)
 {
     int xTemp = 150;
     int yTemp1 = 115;
-    int yTemp2 = 240 - yTemp1;
+    int yTemp2 = 135;
 
-    int xHumi = 105;
+    int xHumi = 125;
     int yHumi1 = 65;
-    int yHumi2 = 240 - yHumi1;
+    int yHumi2 = 180;
 
-    tft.setFreeFont(&RobotoMono_Bold24pt7b);
+    tft.loadFont("RobotoMono-Bold-40", LittleFS);
     tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
 
     tft.setTextDatum(BR_DATUM);
@@ -104,7 +100,7 @@ void draw_screen(const Data &data)
     tft.setTextDatum(TR_DATUM);
     tft.drawString(data.tempExt, xTemp, yTemp2);
 
-    tft.setFreeFont(&RobotoMono_Bold16pt7b);
+    tft.loadFont("RobotoMono-Bold-30", LittleFS);
     tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK, true);
 
     tft.setTextDatum(BR_DATUM);
@@ -112,4 +108,6 @@ void draw_screen(const Data &data)
 
     tft.setTextDatum(TR_DATUM);
     tft.drawString(data.humiExt, xHumi, yHumi2);
+
+    tft.unloadFont();
 }

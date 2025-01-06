@@ -1,6 +1,5 @@
-#pragma once
 #include <stdint.h>
-#include <SD.h>
+#include <LittleFS.h>
 
 /*
 USAGE:
@@ -55,7 +54,7 @@ template <class type>
 RawImage<type> *newImage(const char *path)
 {
     typedef RawImage<type> raw;
-    File f = SD.open(path, FILE_READ);
+    File f = LittleFS.open(path, FILE_READ);
     if (!f)
     {
         return nullptr;
