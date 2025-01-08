@@ -1,13 +1,22 @@
 #include <SPI.h>
 #define USE_TFT_ESPI_LIBRARY
 #include <lv_xiao_round_screen.h>
-#include "RawImage.h"
-
+#include <PNGdec.h>
 #include "common.h"
+
+#define SCREEN_W 240
+#define SPRITE_X 40
+#define SPRITE_Y 40
+#define SPRITE_W 160
+#define SPRITE_H 160
 
 uint8_t brightness = 0;
 uint32_t nextStartDim = 0;
 uint32_t nextStepDim = 0;
+
+PNG png;
+File pngfile;
+TFT_eSprite spr = TFT_eSprite(&tft);
 
 void set_brightness(uint8_t b)
 {
@@ -46,22 +55,6 @@ void update_brightness(bool is_touch)
     }
 }
 
-void init_screen()
-{
-    tft.init();
-    tft.setRotation(3);
-    tft.fillScreen(TFT_BLACK);
-
-    set_brightness(100);
-}
-
-void draw_bg()
-{
-    drawImage<uint8_t>("/bg.bmp", 0, 0);
-
-    nextStartDim = millis() + DIM_TIMEOUT_MS;
-}
-
 void display_error(const char *string)
 {
     static bool isblinked = false;
@@ -81,33 +74,121 @@ void display_error(const char *string)
     isblinked = !isblinked;
 }
 
+void init_screen()
+{
+    tft.init();
+    tft.setRotation(3);
+
+    set_brightness(100);
+
+    if (spr.createSprite(SPRITE_W, SPRITE_H) == nullptr)
+    {
+        log_e("cannot create sprite");
+    }
+
+    tft.fillScreen(TFT_BLACK);
+
+    nextStartDim = millis() + DIM_TIMEOUT_MS;
+}
+
+void *pngOpen(const char *filename, int32_t *size)
+{
+    pngfile = LittleFS.open(filename, "r");
+    *size = pngfile.size();
+    return &pngfile;
+}
+
+void pngClose(void *handle)
+{
+    File pngfile = *((File *)handle);
+    if (pngfile)
+    {
+        pngfile.close();
+    }
+}
+
+int32_t pngRead(PNGFILE *page, uint8_t *buffer, int32_t length)
+{
+    if (!pngfile)
+    {
+        return 0;
+    }
+    return pngfile.read(buffer, length);
+}
+
+int32_t pngSeek(PNGFILE *page, int32_t position)
+{
+    if (!pngfile)
+    {
+        return 0;
+    }
+    return pngfile.seek(position);
+}
+
+void draw_bg()
+{
+    auto draw = [](PNGDRAW *pDraw)
+    {
+        uint16_t lineBuffer[SCREEN_W];
+        png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
+        tft.pushImage(0, 0 + pDraw->y, pDraw->iWidth, 1, lineBuffer);
+    };
+
+    png.open("/bg.png", pngOpen, pngClose, pngRead, pngSeek, draw);
+    tft.startWrite();
+    png.decode(NULL, 0);
+    png.close();
+    tft.endWrite();
+}
+
+void init_sprite()
+{
+    auto draw = [](PNGDRAW *pDraw)
+    {
+        if (pDraw->y >= SPRITE_Y && pDraw->y < SPRITE_Y + SPRITE_H)
+        {
+            uint16_t lineBuffer[SCREEN_W];
+            png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
+            spr.pushImage(-SPRITE_X, pDraw->y - SPRITE_Y, pDraw->iWidth, 1, lineBuffer);
+        }
+    };
+
+    png.open("/bg.png", pngOpen, pngClose, pngRead, pngSeek, draw);
+    png.decode(NULL, 0);
+    png.close();
+}
+
 void draw_screen(const Data &data)
 {
-    int xTemp = 150;
-    int yTemp1 = 115;
-    int yTemp2 = 135;
+    init_sprite();
 
-    int xHumi = 125;
-    int yHumi1 = 65;
-    int yHumi2 = 180;
+    int xTemp = 200 - SPRITE_X;
+    int yTemp1 = 115 - SPRITE_Y;
+    int yTemp2 = 130 - SPRITE_Y;
 
-    tft.loadFont("RobotoMono-Bold-40", LittleFS);
-    tft.setTextColor(TFT_WHITE, TFT_BLACK, true);
+    int xHumi = 150 - SPRITE_X;
+    int yHumi1 = 70 - SPRITE_Y;
+    int yHumi2 = 175 - SPRITE_Y;
 
-    tft.setTextDatum(BR_DATUM);
-    tft.drawString(data.tempSejour, xTemp, yTemp1);
+    spr.loadFont("RobotoMono-Bold-40", LittleFS);
+    spr.setTextColor(TFT_WHITE, TFT_NAVY);
 
-    tft.setTextDatum(TR_DATUM);
-    tft.drawString(data.tempExt, xTemp, yTemp2);
+    spr.setTextDatum(BR_DATUM);
+    spr.drawString(data.tempSejour, xTemp, yTemp1);
 
-    tft.loadFont("RobotoMono-Bold-30", LittleFS);
-    tft.setTextColor(TFT_LIGHTGREY, TFT_BLACK, true);
+    spr.setTextDatum(TR_DATUM);
+    spr.drawString(data.tempExt, xTemp, yTemp2);
 
-    tft.setTextDatum(BR_DATUM);
-    tft.drawString(data.humiSejour, xHumi, yHumi1);
+    spr.loadFont("RobotoMono-Bold-30", LittleFS);
+    spr.setTextColor(TFT_LIGHTGREY, TFT_NAVY);
 
-    tft.setTextDatum(TR_DATUM);
-    tft.drawString(data.humiExt, xHumi, yHumi2);
+    spr.setTextDatum(BR_DATUM);
+    spr.drawString(data.humiSejour, xHumi, yHumi1);
 
-    tft.unloadFont();
+    spr.setTextDatum(TR_DATUM);
+    spr.drawString(data.humiExt, xHumi, yHumi2);
+
+    spr.unloadFont();
+
+    spr.pushSprite(SPRITE_X, SPRITE_Y);
 }
