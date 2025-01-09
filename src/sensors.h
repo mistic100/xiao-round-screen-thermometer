@@ -29,17 +29,16 @@ bool update_sensors(Data &data)
         deserializeJson(doc, http.getStream());
 
         auto time = doc["attributes"]["time"].as<String>();
-        data.hour = time.substring(0, 2).toInt();
-        data.minute = time.substring(3, 5).toInt();
+        data.time = time.substring(0, 2).toInt() * 60 + time.substring(3, 5).toInt();
+        data.atHome = doc["attributes"]["at_home"].as<bool>();
         data.tempSejour = doc["attributes"]["temp_sejour"].as<String>();
         data.tempExt = doc["attributes"]["temp_ext"].as<String>();
         data.humiSejour = doc["attributes"]["humi_sejour"].as<String>();
         data.humiExt = doc["attributes"]["humi_ext"].as<String>();
 
-        Serial.print("Heure: ");
-        Serial.print(data.hour);
-        Serial.print(":");
-        Serial.println(data.minute);
+        Serial.print("Temps: ");
+        Serial.print(data.time);
+        Serial.println("mins");
 
         Serial.print("Séjour: ");
         Serial.print(data.tempSejour);
@@ -59,4 +58,16 @@ bool update_sensors(Data &data)
     }
 
     return false;
+}
+
+bool is_always_on(const Data &data)
+{
+    if (!data.atHome)
+    {
+        return false;
+    }
+    else
+    {
+        return data.time >= TIME_START && data.time < TIME_END;
+    }
 }

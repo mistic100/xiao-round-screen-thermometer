@@ -27,30 +27,57 @@ void set_brightness(uint8_t b)
     }
 }
 
-void update_brightness(bool is_touch)
+void update_brightness(bool is_always_on, bool is_touch)
 {
     uint32_t now = millis();
 
     if (is_touch)
     {
+        // on touch: set 100% & start dim timer
         set_brightness(100);
         nextStartDim = now + DIM_TIMEOUT_MS;
     }
-    else if (nextStartDim != 0 && nextStartDim < now)
+    else if (nextStartDim != 0)
     {
-        nextStartDim = 0;
-        nextStepDim = now;
-    }
-    else if (nextStepDim != 0 && nextStepDim < now)
-    {
-        if (brightness > MIN_BRIGHTNESS)
+        // on dim timer end: start step timer
+        if (nextStartDim < now)
         {
-            set_brightness(brightness - 1);
-            nextStepDim = now + 20;
+            nextStartDim = 0;
+            nextStepDim = now;
         }
-        else
+    }
+    else if (nextStepDim != 0)
+    {
+        // on step timer end
+        if (nextStepDim < now)
         {
-            nextStepDim = 0;
+            // > min brightness: set -1 & restart step timer
+            if (brightness > (is_always_on ? MIN_BRIGHTNESS : 0))
+            {
+                set_brightness(brightness - 1);
+                nextStepDim = now + 20;
+            }
+            // stop step timer
+            else
+            {
+                nextStepDim = 0;
+            }
+        }
+    }
+    else if (!is_always_on)
+    {
+        // if away: set 0%
+        if (brightness > 0)
+        {
+            set_brightness(0);
+        }
+    }
+    else
+    {
+        // if at home: set min brightness
+        if (brightness == 0)
+        {
+            set_brightness(MIN_BRIGHTNESS);
         }
     }
 }

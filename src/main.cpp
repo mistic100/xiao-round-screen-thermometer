@@ -40,5 +40,5 @@ void loop()
     {
         draw_screen(data);
     }
-    update_brightness(chsc6x_is_pressed());
+    update_brightness(is_always_on(data), chsc6x_is_pressed());
 }
