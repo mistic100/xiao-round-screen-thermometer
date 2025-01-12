@@ -5,6 +5,7 @@
 #include "common.h"
 
 #define SCREEN_W 240
+#define ICON_W 32
 #define SPRITE_X 40
 #define SPRITE_Y 40
 #define SPRITE_W 160
@@ -17,6 +18,8 @@ uint32_t nextStepDim = 0;
 PNG png;
 File pngfile;
 TFT_eSprite spr = TFT_eSprite(&tft);
+
+static const char* TAG_BRIGHTNESS = "BRI";
 
 void set_brightness(uint8_t b)
 {
@@ -36,6 +39,7 @@ void update_brightness(bool is_always_on, bool is_touch)
         // on touch: set 100% & start dim timer
         set_brightness(100);
         nextStartDim = now + DIM_TIMEOUT_MS;
+        ESP_LOGI(TAG_BRIGHTNESS, "Restart");
     }
     else if (nextStartDim != 0)
     {
@@ -44,6 +48,7 @@ void update_brightness(bool is_always_on, bool is_touch)
         {
             nextStartDim = 0;
             nextStepDim = now;
+            ESP_LOGI(TAG_BRIGHTNESS, "Start dim");
         }
     }
     else if (nextStepDim != 0)
@@ -61,6 +66,7 @@ void update_brightness(bool is_always_on, bool is_touch)
             else
             {
                 nextStepDim = 0;
+                ESP_LOGI(TAG_BRIGHTNESS, "End dim");
             }
         }
     }
@@ -70,6 +76,7 @@ void update_brightness(bool is_always_on, bool is_touch)
         if (brightness > 0)
         {
             set_brightness(0);
+            ESP_LOGI(TAG_BRIGHTNESS, "Off");
         }
     }
     else
@@ -78,6 +85,7 @@ void update_brightness(bool is_always_on, bool is_touch)
         if (brightness == 0)
         {
             set_brightness(MIN_BRIGHTNESS);
+            ESP_LOGI(TAG_BRIGHTNESS, "On");
         }
     }
 }
@@ -185,37 +193,70 @@ void init_sprite()
     png.close();
 }
 
+typedef struct
+{
+    uint8_t x, y;
+} COORDS;
+
+void draw_icon(const String &name, uint8_t x, uint8_t y)
+{
+    String path = "/" + name + ".png";
+    COORDS coords = {x, y};
+
+    auto draw = [](PNGDRAW *pDraw)
+    {
+        COORDS *coords = (COORDS *)pDraw->pUser;
+        uint16_t lineBuffer[ICON_W];
+        png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
+        spr.pushImage(coords->x - SPRITE_X - ICON_W / 2, coords->y + pDraw->y - SPRITE_Y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer);
+    };
+
+    png.open(path.c_str(), pngOpen, pngClose, pngRead, pngSeek, draw);
+    png.decode((void *)&coords, 0);
+    png.close();
+}
+
 void draw_screen(const Data &data)
 {
     init_sprite();
 
     int xTemp = 200 - SPRITE_X;
-    int yTemp1 = 115 - SPRITE_Y;
-    int yTemp2 = 130 - SPRITE_Y;
+    int yTemp1 = 68 - SPRITE_Y;
+    int yTemp2 = 180 - SPRITE_Y;
 
     int xHumi = 150 - SPRITE_X;
-    int yHumi1 = 70 - SPRITE_Y;
-    int yHumi2 = 175 - SPRITE_Y;
+    int yHumi1 = 40 - SPRITE_Y;
+    int yHumi2 = 205 - SPRITE_Y;
 
     spr.loadFont("RobotoMono-Bold-40", LittleFS);
     spr.setTextColor(TFT_WHITE, TFT_NAVY);
 
-    spr.setTextDatum(BR_DATUM);
+    spr.setTextDatum(TR_DATUM);
     spr.drawString(data.tempSejour, xTemp, yTemp1);
 
-    spr.setTextDatum(TR_DATUM);
+    spr.setTextDatum(BR_DATUM);
     spr.drawString(data.tempExt, xTemp, yTemp2);
 
     spr.loadFont("RobotoMono-Bold-30", LittleFS);
     spr.setTextColor(TFT_LIGHTGREY, TFT_NAVY);
 
-    spr.setTextDatum(BR_DATUM);
+    spr.setTextDatum(TR_DATUM);
     spr.drawString(data.humiSejour, xHumi, yHumi1);
 
-    spr.setTextDatum(TR_DATUM);
+    spr.setTextDatum(BR_DATUM);
     spr.drawString(data.humiExt, xHumi, yHumi2);
 
     spr.unloadFont();
+
+    if (data.modeSalon == "heat_cool" || data.modeSalon == "heat" || data.modeSalon == "cool" || data.modeSalon == "off")
+    {
+        draw_icon(data.modeSalon, 80, 120);
+    }
+
+    if (data.modeSejour == "heat" || data.modeSejour == "off")
+    {
+        draw_icon(data.modeSejour, 160, 120);
+    }
 
     spr.pushSprite(SPRITE_X, SPRITE_Y);
 }
