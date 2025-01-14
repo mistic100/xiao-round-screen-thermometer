@@ -232,30 +232,30 @@ void draw_screen(const Data &data)
     spr.setTextColor(TFT_WHITE, TFT_NAVY);
 
     spr.setTextDatum(TR_DATUM);
-    spr.drawString(data.tempSejour, xTemp, yTemp1);
+    spr.drawString(data.temp1, xTemp, yTemp1);
 
     spr.setTextDatum(BR_DATUM);
-    spr.drawString(data.tempExt, xTemp, yTemp2);
+    spr.drawString(data.temp2, xTemp, yTemp2);
 
     spr.loadFont("RobotoMono-Bold-30", LittleFS);
     spr.setTextColor(TFT_LIGHTGREY, TFT_NAVY);
 
     spr.setTextDatum(TR_DATUM);
-    spr.drawString(data.humiSejour, xHumi, yHumi1);
+    spr.drawString(data.humi1, xHumi, yHumi1);
 
     spr.setTextDatum(BR_DATUM);
-    spr.drawString(data.humiExt, xHumi, yHumi2);
+    spr.drawString(data.humi2, xHumi, yHumi2);
 
     spr.unloadFont();
 
-    if (data.modeSalon == "heat_cool" || data.modeSalon == "heat" || data.modeSalon == "cool" || data.modeSalon == "off")
+    if (data.mode1 == "heat_cool" || data.mode1 == "heat" || data.mode1 == "cool" || data.mode1 == "off")
     {
-        draw_icon(data.modeSalon, 80, 120);
+        draw_icon(data.mode1, 80, 120);
     }
 
-    if (data.modeSejour == "heat" || data.modeSejour == "off")
+    if (data.mode2 == "heat_cool" || data.mode2 == "heat" || data.mode2 == "cool" || data.mode2 == "off")
     {
-        draw_icon(data.modeSejour, 160, 120);
+        draw_icon(data.mode2, 160, 120);
     }
 
     spr.pushSprite(SPRITE_X, SPRITE_Y);

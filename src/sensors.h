@@ -33,22 +33,19 @@ bool update_sensors(Data &data)
         auto time = doc["attributes"]["time"].as<String>();
         data.time = time.substring(0, 2).toInt() * 60 + time.substring(3, 5).toInt();
         data.atHome = doc["attributes"]["at_home"].as<bool>();
-        data.tempSejour = doc["attributes"]["temp_sejour"].as<String>();
-        data.tempExt = doc["attributes"]["temp_ext"].as<String>();
-        data.humiSejour = doc["attributes"]["humi_sejour"].as<String>();
-        data.humiExt = doc["attributes"]["humi_ext"].as<String>();
-        data.modeSalon = doc["attributes"]["mode_salon"].as<String>();
-        auto modeSejour = doc["attributes"]["mode_sejour"].as<String>();
-        data.modeSejour = modeSejour == "heating" ? "heat" : "off";
+        data.temp1 = doc["attributes"]["temp_1"].as<String>();
+        data.temp2 = doc["attributes"]["temp_2"].as<String>();
+        data.humi1 = doc["attributes"]["humi_1"].as<String>();
+        data.humi2 = doc["attributes"]["humi_2"].as<String>();
+        data.mode1 = doc["attributes"]["mode_1"].as<String>();
+        data.mode2 = doc["attributes"]["mode_2"].as<String>();
 
         http.end();
 
         ESP_LOGI(TAG, "Time: %d mins", data.time);
         ESP_LOGI(TAG, "At home: %d", data.atHome);
-        ESP_LOGI(TAG, "Séjour: %s %s", data.tempSejour.c_str(), data.humiSejour.c_str());
-        ESP_LOGI(TAG, "Ext: %s %s", data.tempExt.c_str(), data.humiExt.c_str());
-        ESP_LOGI(TAG, "Mode salon: %s", data.modeSalon);
-        ESP_LOGI(TAG, "Mode séjour: %s", data.modeSejour);
+        ESP_LOGI(TAG, "Zone 1: %s %s %s", data.temp1.c_str(), data.humi1.c_str(), data.mode1);
+        ESP_LOGI(TAG, "Zone 2: %s %s %s", data.temp2.c_str(), data.humi2.c_str(), data.mode2);
 
         nextUpdate = millis() + UPDATE_INTERVAL_MS;
 
