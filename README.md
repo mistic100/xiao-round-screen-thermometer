@@ -8,14 +8,20 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 - 2 humidity values
 - 2 HVAC modes
 - automatically dim screen + touch to wake up
-- automatically turn screen off when nobody is at home
+- automatically turn screen off when nobody is at home and during night (between 23h30 and 8h)
 
 ## Configuration
 
 ### Home assistant
 
-Add a custom binary sensor to combine multiple attributes.
+Add a custom binary sensor with the following attributes:
+- `time: "{{ states('sensor.time') }}"`
+- `at_home: "{{ states('zone.home') | int > 0 }}"`
+- `temp_1` & `temp_2` temperature with max one decimal + unit
+- `humi_1` & `humi_2` humidity with max one decimal + unit
+- `mode_1` & `mode_2` one of `heat`, `cool`, `heat_cool` and `off`
 
+**Example:**
 ```yaml
 template:
   - binary_sensor:
@@ -34,9 +40,9 @@ template:
 
 ### Firmware
 
-Copy `secrets.tpl.h` to `secrets.h` and fill the values.
+Copy `secrets.tpl.h` into `secrets.h` and fill the values.
 
-- `HA_TOKEN` : go to your HA profile page, then Security, and create a new Long lives token at the bottom of the page (keep the `Bearer ` prefix)
+- `HA_TOKEN` : go to your HA profile page, then Security, and create a new Long lived token at the bottom of the page (keep the `Bearer ` prefix)
 - `HA_URL` : fill in your HA IP and the id of the sensor created above
 
 ## Compiling

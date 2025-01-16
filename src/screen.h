@@ -250,12 +250,12 @@ void draw_screen(const Data &data)
 
     if (data.mode1 == "heat_cool" || data.mode1 == "heat" || data.mode1 == "cool" || data.mode1 == "off")
     {
-        draw_icon(data.mode1, 80, 120);
+        draw_icon(data.mode1, 120-16, 120);
     }
 
     if (data.mode2 == "heat_cool" || data.mode2 == "heat" || data.mode2 == "cool" || data.mode2 == "off")
     {
-        draw_icon(data.mode2, 160, 120);
+        draw_icon(data.mode2, 120+16, 120);
     }
 
     spr.pushSprite(SPRITE_X, SPRITE_Y);

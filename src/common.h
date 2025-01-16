@@ -10,10 +10,10 @@
 #define TIME_END 23*60+30
 
 struct Data {
-    String temp1 = "N/A";
-    String humi1 = "N/A";
-    String temp2 = "N/A";
-    String humi2 = "N/A";
+    String temp1 = "";
+    String humi1 = "";
+    String temp2 = "";
+    String humi2 = "";
     String mode1 = "";
     String mode2 = "";
     uint16_t time = 0; // minutes
