@@ -1,4 +1,4 @@
-# Home assistant climate on Seeed studio round screen
+# Home assistant climate on Seeed Studio round screen
 
 This a small project to display some data from Home Assistant on the 1.28 inches round display from Seeed Studio powered by a Xiao ESP32C3.
 
@@ -9,6 +9,8 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 - 2 HVAC modes
 - automatically dim screen + touch to wake up
 - automatically turn screen off when nobody is at home and during night (between 23h30 and 8h)
+
+![preview](./preview.png)
 
 ## Configuration
 
@@ -52,8 +54,15 @@ Run `Upload Filesystem Image` to pack and install the resources then `Upload and
 
 ## 3D printed case
 
-TODO: photos, link to Printables
+A 3D printable desk case is provided. The screen is secured with a screwable ring.
+It requires the usage of a small angled USB-C adapter ([Aliexpress](https://aliexpress.com/item/1005005966745930.html) or [Amazon](https://www.amazon.com/dp/B0B2NJ3P3L)).
+
+The case itself is available in one piece, best for resin printer, or sliced for easier FDM printing (the two slices must be glued together).
+
+<img src="./render/front-1.png" width="400"/> <img src="./render/back-1.png" width="400"/>
 
 ## Links
 
 Generate VLW fonts: https://wiki.seeedstudio.com/Wio-Terminal-LCD-Anti-aliased-Fonts/
+
+Background illustration is not mine but I don't remember where I found it.

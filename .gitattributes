@@ -1,0 +1,7 @@
+model/*.SLDASM filter=lfs diff=lfs merge=lfs -text
+model/*.SLDPRT filter=lfs diff=lfs merge=lfs -text
+model/*.STEP filter=lfs diff=lfs merge=lfs -text
+model/*.STP filter=lfs diff=lfs merge=lfs -text
+model/*.step filter=lfs diff=lfs merge=lfs -text
+model/*.stp filter=lfs diff=lfs merge=lfs -text
+render/*.png filter=lfs diff=lfs merge=lfs -text
