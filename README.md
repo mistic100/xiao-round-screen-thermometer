@@ -61,6 +61,8 @@ The case itself is available in one piece, best for resin printer, or sliced for
 
 <img src="./render/front-1.png" width="400"/> <img src="./render/back-1.png" width="400"/>
 
+[Also available on Printables](https://www.printables.com/model/1153601-desk-stand-for-seeed-studio-round-display)
+
 ## Links
 
 Generate VLW fonts: https://wiki.seeedstudio.com/Wio-Terminal-LCD-Anti-aliased-Fonts/
