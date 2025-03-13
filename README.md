@@ -31,11 +31,11 @@ template:
       state: true
       attributes:
         time: "{{ states('sensor.time') }}"
-        at_home: "{{ states('zone.home') | int > 0 }}"
-        temp_1: "{{ states('sensor.thermometre_sejour_temperature') | round(1) }}°C"
-        temp_2: "{{ states('sensor.thermometre_exterieur_temperature') | round(1) }}°C"
-        humi_1: "{{ states('sensor.thermometre_sejour_humidity') | round(0) }}%"
-        humi_2: "{{ states('sensor.thermometre_exterieur_humidity') | round(0) }}%"
+        at_home: "{{ states('zone.home') | int(default=0) > 0 }}"
+        temp_1: "{{ states('sensor.thermometre_sejour_temperature') | round(1, default=0) }}°C"
+        temp_2: "{{ states('sensor.thermometre_exterieur_temperature') | round(1, default=0) }}°C"
+        humi_1: "{{ states('sensor.thermometre_sejour_humidity') | round(0, default=0) }}%"
+        humi_2: "{{ states('sensor.thermometre_exterieur_humidity') | round(0, default=0) }}%"
         mode_1: "{{ states('climate.ac_living_room_clim_salon') }}"
         mode_2: "{{ state_attr('climate.chauffage_sejour', 'hvac_action') | replace('heating', 'heat') | replace('idle', 'off') }}"
 ```
