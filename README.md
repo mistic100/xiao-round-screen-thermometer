@@ -14,11 +14,11 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 
 ## Configuration
 
-### Home assistant
+### Home Assistant
 
 Add a custom binary sensor with the following attributes:
 - `time: "{{ states('sensor.time') }}"`
-- `at_home: "{{ states('zone.home') | int > 0 }}"`
+- `at_home: "{{ states('zone.home') | int(default=0) > 0 }}"`
 - `temp_1` & `temp_2` temperature with max one decimal + unit
 - `humi_1` & `humi_2` humidity with max one decimal + unit
 - `mode_1` & `mode_2` one of `heat`, `cool`, `heat_cool` and `off`
@@ -27,7 +27,7 @@ Add a custom binary sensor with the following attributes:
 ```yaml
 template:
   - binary_sensor:
-    - name: Data for Xiao
+    - unique_id: data_for_xiao
       state: true
       attributes:
         time: "{{ states('sensor.time') }}"
@@ -44,8 +44,18 @@ template:
 
 Copy `secrets.tpl.h` into `secrets.h` and fill the values.
 
-- `HA_TOKEN` : go to your HA profile page, then Security, and create a new Long lived token at the bottom of the page (keep the `Bearer ` prefix)
-- `HA_URL` : fill in your HA IP and the id of the sensor created above
+- `HA_TOKEN`: go to your HA profile page, then Security, and create a new Long lived token at the bottom of the page (keep the `Bearer ` prefix)
+- `HA_URL`: fill in your HA hostname and the id of the sensor created above
+- `OTA_PASS`: choose a password to secure the Wifi OTA update
+
+Copy `upload_params.tpl.ini` into `upload_params.ini` and fill the OTA password.
+
+----
+
+In `common.h` you can also configure:
+
+- `WIFI_OTA`: comment to disable the Wifi OTA
+- `TIME_START`, `TIME_END`: outside these hours the display turns off
 
 ## Compiling
 
