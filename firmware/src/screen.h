@@ -19,7 +19,7 @@ PNG png;
 File pngfile;
 TFT_eSprite spr = TFT_eSprite(&tft);
 
-static const char* TAG_BRIGHTNESS = "BRI";
+static const char *TAG_BRIGHTNESS = "BRI";
 
 void set_brightness(uint8_t b)
 {
@@ -208,7 +208,7 @@ void draw_icon(const String &name, uint8_t x, uint8_t y)
         COORDS *coords = (COORDS *)pDraw->pUser;
         uint16_t lineBuffer[ICON_W];
         png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
-        spr.pushImage(coords->x - SPRITE_X - ICON_W / 2, coords->y + pDraw->y - SPRITE_Y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer);
+        spr.pushImage(coords->x - ICON_W / 2, coords->y + pDraw->y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer);
     };
 
     png.open(path.c_str(), pngOpen, pngClose, pngRead, pngSeek, draw);
@@ -220,13 +220,19 @@ void draw_screen(const Data &data)
 {
     init_sprite();
 
-    int xTemp = 200 - SPRITE_X;
-    int yTemp1 = 68 - SPRITE_Y;
-    int yTemp2 = 180 - SPRITE_Y;
+    static const int xTemp = 200 - SPRITE_X;
+    static const int yTemp1 = 68 - SPRITE_Y;
+    static const int yTemp2 = 180 - SPRITE_Y;
 
-    int xHumi = 150 - SPRITE_X;
-    int yHumi1 = 40 - SPRITE_Y;
-    int yHumi2 = 205 - SPRITE_Y;
+    static const int xHumi = 150 - SPRITE_X;
+    static const int yHumi1 = 40 - SPRITE_Y;
+    static const int yHumi2 = 205 - SPRITE_Y;
+
+    static const int xPower = 0;
+    static const int yPower = SPRITE_H / 2.0 + 2;
+
+    static const int xIcon = 172 - SPRITE_X;
+    static const int yIcon = 120 - SPRITE_Y;
 
     spr.loadFont("RobotoMono-Bold-40", LittleFS);
     spr.setTextColor(TFT_WHITE, TFT_NAVY);
@@ -246,16 +252,20 @@ void draw_screen(const Data &data)
     spr.setTextDatum(BR_DATUM);
     spr.drawString(data.humi2, xHumi, yHumi2);
 
+    spr.setTextColor(TFT_DARKCYAN, TFT_NAVY);
+    spr.setTextDatum(CL_DATUM);
+    spr.drawString(data.power, xPower, yPower);
+
     spr.unloadFont();
 
     if (data.mode1 == "heat_cool" || data.mode1 == "heat" || data.mode1 == "cool" || data.mode1 == "off")
     {
-        draw_icon(data.mode1, 120-16, 120);
+        draw_icon(data.mode1, xIcon - 16, yIcon);
     }
 
     if (data.mode2 == "heat_cool" || data.mode2 == "heat" || data.mode2 == "cool" || data.mode2 == "off")
     {
-        draw_icon(data.mode2, 120+16, 120);
+        draw_icon(data.mode2, xIcon + 16, yIcon);
     }
 
     spr.pushSprite(SPRITE_X, SPRITE_Y);

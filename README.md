@@ -4,9 +4,9 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 
 ## Features
 
-- 2 temperatures values
-- 2 humidity values
+- 2 temperatures + humidity values
 - 2 HVAC modes
+- power draw
 - automatically dim screen + touch to wake up
 - automatically turn screen off when nobody is at home and during night (between 23h30 and 8h)
 
@@ -19,6 +19,7 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 Add a custom binary sensor with the following attributes:
 - `time: "{{ states('sensor.time') }}"`
 - `at_home: "{{ states('zone.home') | int(default=0) > 0 }}"`
+- `power`: power draw
 - `temp_1` & `temp_2` temperature with max one decimal + unit
 - `humi_1` & `humi_2` humidity with max one decimal + unit
 - `mode_1` & `mode_2` one of `heat`, `cool`, `heat_cool` and `off`
@@ -32,12 +33,13 @@ template:
       attributes:
         time: "{{ states('sensor.time') }}"
         at_home: "{{ states('zone.home') | int(default=0) > 0 }}"
+        power: "{{ states('sensor.power_inst') }}W"
         temp_1: "{{ states('sensor.thermometre_sejour_temperature') | round(1, default=0) }}°C"
         temp_2: "{{ states('sensor.thermometre_exterieur_temperature') | round(1, default=0) }}°C"
         humi_1: "{{ states('sensor.thermometre_sejour_humidity') | round(0, default=0) }}%"
         humi_2: "{{ states('sensor.thermometre_exterieur_humidity') | round(0, default=0) }}%"
-        mode_1: "{{ states('climate.ac_living_room_clim_salon') }}"
-        mode_2: "{{ state_attr('climate.chauffage_sejour', 'hvac_action') | replace('heating', 'heat') | replace('idle', 'off') }}"
+        mode_1: "{{ states('climate.ac_living_room') }}"
+        mode_2: "{{ state_attr('climate.heater_bedroom', 'hvac_action') | replace('heating', 'heat') | replace('idle', 'off') }}"
 ```
 
 ### Firmware
@@ -45,7 +47,8 @@ template:
 Copy `secrets.tpl.h` into `secrets.h` and fill the values.
 
 - `HA_TOKEN`: go to your HA profile page, then Security, and create a new Long lived token at the bottom of the page (keep the `Bearer ` prefix)
-- `HA_URL`: fill in your HA hostname and the id of the sensor created above
+- `HA_URL`: fill in your HA hostname
+- `HA_SENSOR`: set the id of the sensor created above
 - `OTA_PASS`: choose a password to secure the Wifi OTA update
 
 Copy `upload_params.tpl.ini` into `upload_params.ini` and fill the OTA password.
