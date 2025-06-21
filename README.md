@@ -1,4 +1,4 @@
-# Home assistant climate on Seeed Studio round screen
+# Home Assistant climate on Seeed Studio round screen
 
 This a small project to display some data from Home Assistant on the 1.28 inches round display from Seeed Studio powered by a Xiao ESP32C3.
 
@@ -19,7 +19,7 @@ This a small project to display some data from Home Assistant on the 1.28 inches
 Add a custom binary sensor with the following attributes:
 - `time: "{{ states('sensor.time') }}"`
 - `at_home: "{{ states('zone.home') | int(default=0) > 0 }}"`
-- `power`: power draw
+- `power`: power draw + unit
 - `temp_1` & `temp_2` temperature with max one decimal + unit
 - `humi_1` & `humi_2` humidity with max one decimal + unit
 - `mode_1` & `mode_2` one of `heat`, `cool`, `heat_cool` and `off`
