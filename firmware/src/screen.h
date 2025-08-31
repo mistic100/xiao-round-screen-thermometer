@@ -1,15 +1,21 @@
 #include <SPI.h>
-#define USE_TFT_ESPI_LIBRARY
-#include <lv_xiao_round_screen.h>
+#include <TFT_eSPI.h>
 #include <PNGdec.h>
 #include "common.h"
 
-#define SCREEN_W 240
+#define SCREEN_WIDTH 240
+#define SCREEN_HEIGHT 240
+
 #define ICON_W 32
 #define SPRITE_X 40
 #define SPRITE_Y 40
 #define SPRITE_W 160
 #define SPRITE_H 160
+
+#define ANTIALIAS_COLOR 0x1006
+
+TFT_eSPI tft = TFT_eSPI(SCREEN_WIDTH, SCREEN_HEIGHT);
+TFT_eSprite spr = TFT_eSprite(&tft);
 
 uint8_t brightness = 0;
 uint32_t nextStartDim = 0;
@@ -17,9 +23,9 @@ uint32_t nextStepDim = 0;
 
 PNG png;
 File pngfile;
-TFT_eSprite spr = TFT_eSprite(&tft);
 
-static const char *TAG_BRIGHTNESS = "BRI";
+static const char *TAG_BRIGHTNESS = "BRIGHT";
+static const char *TAG_SCREEN = "SCREEN";
 
 void set_brightness(uint8_t b)
 {
@@ -113,16 +119,14 @@ void init_screen()
 {
     tft.init();
     tft.setRotation(3);
-
-    set_brightness(100);
+    tft.fillScreen(TFT_BLACK);
 
     if (spr.createSprite(SPRITE_W, SPRITE_H) == nullptr)
     {
         log_e("cannot create sprite");
     }
 
-    tft.fillScreen(TFT_BLACK);
-
+    set_brightness(100);
     nextStartDim = millis() + DIM_TIMEOUT_MS;
 }
 
@@ -164,7 +168,7 @@ void draw_bg()
 {
     auto draw = [](PNGDRAW *pDraw)
     {
-        uint16_t lineBuffer[SCREEN_W];
+        uint16_t lineBuffer[SCREEN_WIDTH];
         png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
         tft.pushImage(0, 0 + pDraw->y, pDraw->iWidth, 1, lineBuffer);
     };
@@ -182,7 +186,7 @@ void init_sprite()
     {
         if (pDraw->y >= SPRITE_Y && pDraw->y < SPRITE_Y + SPRITE_H)
         {
-            uint16_t lineBuffer[SCREEN_W];
+            uint16_t lineBuffer[SCREEN_WIDTH];
             png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
             spr.pushImage(-SPRITE_X, pDraw->y - SPRITE_Y, pDraw->iWidth, 1, lineBuffer);
         }
@@ -198,6 +202,7 @@ typedef struct
     uint8_t x, y;
 } COORDS;
 
+// note: pushMaskedImage cannot be used on sprite
 void draw_icon(const String &name, uint8_t x, uint8_t y)
 {
     String path = "/" + name + ".png";
@@ -207,8 +212,12 @@ void draw_icon(const String &name, uint8_t x, uint8_t y)
     {
         COORDS *coords = (COORDS *)pDraw->pUser;
         uint16_t lineBuffer[ICON_W];
+        uint8_t maskBuffer[1 + ICON_W / 8];
         png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
-        spr.pushImage(coords->x - ICON_W / 2, coords->y + pDraw->y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer);
+        if (png.getAlphaMask(pDraw, maskBuffer, 255))
+        {
+            tft.pushMaskedImage(coords->x - ICON_W / 2, coords->y + pDraw->y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer, maskBuffer);
+        }
     };
 
     png.open(path.c_str(), pngOpen, pngClose, pngRead, pngSeek, draw);
@@ -218,6 +227,8 @@ void draw_icon(const String &name, uint8_t x, uint8_t y)
 
 void draw_screen(const Data &data)
 {
+    ESP_LOGI(TAG_SCREEN, "Start update");
+
     init_sprite();
 
     static const int xTemp = 200 - SPRITE_X;
@@ -231,11 +242,11 @@ void draw_screen(const Data &data)
     static const int xPower = 0;
     static const int yPower = SPRITE_H / 2.0 + 2;
 
-    static const int xIcon = 172 - SPRITE_X;
-    static const int yIcon = 120 - SPRITE_Y;
+    static const int xIcon = 165;
+    static const int yIcon = 120;
 
     spr.loadFont("RobotoMono-Bold-40", LittleFS);
-    spr.setTextColor(TFT_WHITE, TFT_NAVY);
+    spr.setTextColor(TFT_WHITE, ANTIALIAS_COLOR);
 
     spr.setTextDatum(TR_DATUM);
     spr.drawString(data.temp1, xTemp, yTemp1);
@@ -244,7 +255,7 @@ void draw_screen(const Data &data)
     spr.drawString(data.temp2, xTemp, yTemp2);
 
     spr.loadFont("RobotoMono-Bold-30", LittleFS);
-    spr.setTextColor(TFT_LIGHTGREY, TFT_NAVY);
+    spr.setTextColor(TFT_LIGHTGREY, ANTIALIAS_COLOR);
 
     spr.setTextDatum(TR_DATUM);
     spr.drawString(data.humi1, xHumi, yHumi1);
@@ -252,11 +263,13 @@ void draw_screen(const Data &data)
     spr.setTextDatum(BR_DATUM);
     spr.drawString(data.humi2, xHumi, yHumi2);
 
-    spr.setTextColor(TFT_DARKCYAN, TFT_NAVY);
+    spr.setTextColor(TFT_DARKCYAN, ANTIALIAS_COLOR);
     spr.setTextDatum(CL_DATUM);
     spr.drawString(data.power, xPower, yPower);
 
     spr.unloadFont();
+
+    spr.pushSprite(SPRITE_X, SPRITE_Y);
 
     if (data.mode1 == "heat_cool" || data.mode1 == "heat" || data.mode1 == "cool" || data.mode1 == "off")
     {
@@ -268,5 +281,5 @@ void draw_screen(const Data &data)
         draw_icon(data.mode2, xIcon + 16, yIcon);
     }
 
-    spr.pushSprite(SPRITE_X, SPRITE_Y);
+    ESP_LOGI(TAG_SCREEN, "Screen updated");
 }

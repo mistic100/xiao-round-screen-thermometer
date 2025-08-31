@@ -10,7 +10,7 @@ JsonDocument doc;
 
 uint32_t nextUpdate = 0;
 
-static const char *TAG = "SENSORS";
+static const char *TAG_SENSORS = "SENSORS";
 
 void init_sensors()
 {
@@ -20,7 +20,7 @@ bool update_sensors(Data &data)
 {
     if (nextUpdate < millis())
     {
-        ESP_LOGI(TAG, "Update");
+        ESP_LOGI(TAG_SENSORS, "Update");
 
         http.useHTTP10(true);
         http.begin(client, HA_URL + HA_SENSOR);
@@ -43,11 +43,11 @@ bool update_sensors(Data &data)
 
         http.end();
 
-        ESP_LOGI(TAG, "Time: %d mins", data.time);
-        ESP_LOGI(TAG, "At home: %d", data.atHome);
-        ESP_LOGI(TAG, "Zone 1: %s %s %s", data.temp1.c_str(), data.humi1.c_str(), data.mode1);
-        ESP_LOGI(TAG, "Zone 2: %s %s %s", data.temp2.c_str(), data.humi2.c_str(), data.mode2);
-        ESP_LOGI(TAG, "Power: %s", data.power);
+        ESP_LOGI(TAG_SENSORS, "Time: %d mins", data.time);
+        ESP_LOGI(TAG_SENSORS, "At home: %d", data.atHome);
+        ESP_LOGI(TAG_SENSORS, "Zone 1: %s %s %s", data.temp1.c_str(), data.humi1.c_str(), data.mode1);
+        ESP_LOGI(TAG_SENSORS, "Zone 2: %s %s %s", data.temp2.c_str(), data.humi2.c_str(), data.mode2);
+        ESP_LOGI(TAG_SENSORS, "Power: %s", data.power);
 
         nextUpdate = millis() + UPDATE_INTERVAL_MS;
 

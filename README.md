@@ -78,6 +78,8 @@ The case itself is available in one piece, best for resin printer, or sliced for
 
 ## Links
 
+Background image: https://stock.adobe.com/images/a/909375951
+
 Generate VLW fonts: https://wiki.seeedstudio.com/Wio-Terminal-LCD-Anti-aliased-Fonts/
 
-Background illustration is not mine but I don't remember where I found it.
+Pick RGB565 colors: https://rgbcolorpicker.com/565
