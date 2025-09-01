@@ -1,7 +1,7 @@
 #include <SPI.h>
 #include <TFT_eSPI.h>
-#include <PNGdec.h>
 #include "common.h"
+#include "utils.h"
 
 #define SCREEN_WIDTH 240
 #define SCREEN_HEIGHT 240
@@ -22,7 +22,6 @@ uint32_t nextStartDim = 0;
 uint32_t nextStepDim = 0;
 
 PNG png;
-File pngfile;
 
 static const char *TAG_BRIGHTNESS = "BRIGHT";
 static const char *TAG_SCREEN = "SCREEN";
@@ -130,40 +129,6 @@ void init_screen()
     nextStartDim = millis() + DIM_TIMEOUT_MS;
 }
 
-void *pngOpen(const char *filename, int32_t *size)
-{
-    pngfile = LittleFS.open(filename, "r");
-    *size = pngfile.size();
-    return &pngfile;
-}
-
-void pngClose(void *handle)
-{
-    File pngfile = *((File *)handle);
-    if (pngfile)
-    {
-        pngfile.close();
-    }
-}
-
-int32_t pngRead(PNGFILE *page, uint8_t *buffer, int32_t length)
-{
-    if (!pngfile)
-    {
-        return 0;
-    }
-    return pngfile.read(buffer, length);
-}
-
-int32_t pngSeek(PNGFILE *page, int32_t position)
-{
-    if (!pngfile)
-    {
-        return 0;
-    }
-    return pngfile.seek(position);
-}
-
 void draw_bg()
 {
     auto draw = [](PNGDRAW *pDraw)
@@ -202,7 +167,6 @@ typedef struct
     uint8_t x, y;
 } COORDS;
 
-// note: pushMaskedImage cannot be used on sprite
 void draw_icon(const String &name, uint8_t x, uint8_t y)
 {
     String path = "/" + name + ".png";
@@ -216,7 +180,7 @@ void draw_icon(const String &name, uint8_t x, uint8_t y)
         png.getLineAsRGB565(pDraw, lineBuffer, PNG_RGB565_BIG_ENDIAN, 0xffffffff);
         if (png.getAlphaMask(pDraw, maskBuffer, 255))
         {
-            tft.pushMaskedImage(coords->x - ICON_W / 2, coords->y + pDraw->y - ICON_W / 2, pDraw->iWidth, 1, lineBuffer, maskBuffer);
+            pushMaskedImageToSprite(&spr, coords->x - ICON_W / 2, coords->y + pDraw->y - ICON_W / 2, ICON_W, 1, lineBuffer, maskBuffer);
         }
     };
 
@@ -242,8 +206,8 @@ void draw_screen(const Data &data)
     static const int xPower = 0;
     static const int yPower = SPRITE_H / 2.0 + 2;
 
-    static const int xIcon = 165;
-    static const int yIcon = 120;
+    static const int xIcon = 165 - SPRITE_X;
+    static const int yIcon = 120 - SPRITE_Y;
 
     spr.loadFont("RobotoMono-Bold-40", LittleFS);
     spr.setTextColor(TFT_WHITE, ANTIALIAS_COLOR);
@@ -269,8 +233,6 @@ void draw_screen(const Data &data)
 
     spr.unloadFont();
 
-    spr.pushSprite(SPRITE_X, SPRITE_Y);
-
     if (data.mode1 == "heat_cool" || data.mode1 == "heat" || data.mode1 == "cool" || data.mode1 == "off")
     {
         draw_icon(data.mode1, xIcon - 16, yIcon);
@@ -280,6 +242,8 @@ void draw_screen(const Data &data)
     {
         draw_icon(data.mode2, xIcon + 16, yIcon);
     }
+
+    spr.pushSprite(SPRITE_X, SPRITE_Y);
 
     ESP_LOGI(TAG_SCREEN, "Screen updated");
 }
